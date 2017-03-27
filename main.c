@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -30,7 +32,6 @@
 #define OP_ALU_XOR 8
 
 struct reg {
-
 #define REGBITSIZE REG_SIZE + 1
 	char bits[REGBITSIZE];
 	int val;
@@ -120,24 +121,27 @@ void OP_div(struct reg *r1, struct reg * r2) {
 	int base = abs(r1->val);
 	int times = abs(r2->val);
 	int sign = (r1->val * r2->val) >= 0 ? 1 : -1;
-	struct reg * aux = createRegister("AUX");
+	struct reg * aux;
 
-	r1->val = 0;
-	aux->val = 1;
-	updateBitsFromVal(r1);
-	updateBitsFromVal(aux);
-	flagZero = 1;
+	if (r2->val != 0) {
+		aux = createRegister("AUX");
+		r1->val = 0;
+		aux->val = 1;
+		updateBitsFromVal(r1);
+		updateBitsFromVal(aux);
+		flagZero = 1;
 
-	while (base >= times) {
-		OP_add(r1, aux);
-		base -= times;
+		while (base >= times) {
+			OP_add(r1, aux);
+			base -= times;
+		}
+
+		if (sign < 0) {
+			OP_compl2(r1);
+		}
+
+		free(aux);
 	}
-
-	if (sign < 0) {
-		OP_compl2(r1);
-	}
-
-	free(aux);
 }
 
 void OP_mult(struct reg * r1, struct reg * r2) {
@@ -304,7 +308,7 @@ void updateBitsFromVal(struct reg * r) {
 
 struct reg * cloneRegister(struct reg * r) {
 	struct reg * c = createRegister("TEMP");
-	strcpy_s(c->bits, REG_SIZE + 1, r->bits);
+	strcpy(c->bits, r->bits);
 	c->val = r->val;
 	return c;
 }
@@ -322,7 +326,7 @@ struct reg * createRegister(char * name) {
 			ret->bits[i] = '0';
 		}
 		ret->bits[REG_SIZE] = 0;
-		strcpy_s(ret->name, MAX_NAME_SIZE + 1, name);
+		strcpy(ret->name, name);
 		ret->val = 0;
 	}
 
@@ -338,15 +342,23 @@ void freeAllData(void) {
 void readReg(struct reg *r) {
 	int maxInput = ((int)pow(2, REG_SIZE) - 1) / 2;
 	int minInput = -(maxInput + 1);
-	printf("\nDigite um valor decimal inteiro para o registrador %s (MAX : %d, MIN: %d, %d bits) => ", r->name, maxInput, minInput, REG_SIZE);
-	scanf_s("%d", &(r->val));
-	if (r->val > maxInput) {
-		r->val = maxInput;
+	char buffer[REGBITSIZE];
+	int i = 0;
+	int strSize = 0;
+	int zeroSize = 0;
+	printf("\nDigite um valor numerico binario, em representacao de complemento a 2, para o registrador %s (MAX : %d, MIN: %d, Tamanho: %d bits) => ", r->name, maxInput, minInput, REG_SIZE);
+	scanf("%s", buffer);
+
+	strSize = strlen(buffer);
+	zeroSize = REG_SIZE - strSize;
+	
+	for (i = 0; i < zeroSize; i++) {
+		r->bits[i] = '0';
 	}
-	else if (r->val < minInput) {
-		r->val = minInput;
-	}
-	updateBitsFromVal(r);
+
+	strcpy(&r->bits[i], buffer);
+
+	updateValFromBits(r);
 }
 
 void printReg(struct reg *r) {
@@ -432,7 +444,7 @@ int menu(void) {
 \n\
 Escolha a opcao => ");
 
-	scanf_s("%d", &op);
+	scanf("%d", &op);
 
 	return op;
 }

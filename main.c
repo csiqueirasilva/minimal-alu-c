@@ -68,7 +68,7 @@ void clearScreen() {
 #ifdef __linux__
 	system("clear");
 #elif _WIN32
-	system("pause");
+	system("cls");
 #endif
 }
 

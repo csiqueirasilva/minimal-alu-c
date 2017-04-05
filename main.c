@@ -62,6 +62,30 @@ struct reg * cloneRegister(struct reg *);
 
 /* fim de protótipos */
 
+/* funcao de UI */
+
+void clearScreen() {
+#ifdef __linux__
+	system("clear");
+#elif _WIN32
+	system("pause");
+#endif
+}
+
+void pauseInput() {
+#ifdef __linux__
+	int enter = 0;
+	printf("\n\nPressione ENTER para continuar...\n");
+	while (enter != '\r' && enter != '\n') {
+		enter = getchar();
+	}
+#elif _WIN32
+	system("pause");
+#endif
+}
+
+/* fim de funcao de UI */
+
 /* ops */
 
 void OP_and(struct reg * r1, struct reg * r2) {
@@ -256,7 +280,7 @@ void runALU(void) {
 		printf("\n\nOPERACAO REALIZADA COM SUCESSO\n");
 	}
 
-	system("pause");
+	pauseInput();
 }
 
 void initFlags(void) {
@@ -317,7 +341,7 @@ struct reg * createRegister(char * name) {
 	struct reg * ret = (struct reg *) malloc(sizeof(struct reg));
 	if (ret == NULL) {
 		printf("falha ao alocar memoria. saindo da aplicacao\n");
-		system("pause");
+		pauseInput();
 		exit(-1);
 	}
 	else {
@@ -363,27 +387,27 @@ void readReg(struct reg *r) {
 
 void printReg(struct reg *r) {
 	printf("Valor do registrador %s: %d (0b%s)\n\n", r->name, r->val, r->bits);
-	system("pause");
+	pauseInput();
 }
 
 void printFlags(void) {
 	printf("Carry: %d\nOverflow: %d\nZero: %d\nDivisao por Zero: %d\n\n", flagCarry, flagOverflow, flagZero, flagDivisionZero);
-	system("pause");
+	pauseInput();
 }
 
 void printOps(void) {
 	printf("\n\
 ARITMETICA\n\
 1. ADD (A = A + B)\n\
-2. SUB (A = A - B)\n\
-3. MULT (A = A * B)\n\
-4. DIV (A = A / B)\n\
+10. SUB (A = A - B)\n\
+11. MULT (A = A * B)\n\
+100. DIV (A = A / B)\n\
 \n\
 LOGICA\n\
-5. AND (A = A & B)\n\
-6. OR (A = A | B)\n\
-7. NOT, COMPL1 (A = !A)\n\
-8. XOR (A = A XOR B)\n\
+101. AND (A = A & B)\n\
+110. OR (A = A | B)\n\
+111. NOT, COMPL1 (A = !A)\n\
+1000. XOR (A = A XOR B)\n\
 ");
 
 }
@@ -420,7 +444,7 @@ void operacao(int op) {
 		break;
 	default:
 		printf("\nOPCAO INVALIDA\n");
-		system("pause");
+		pauseInput();
 	}
 }
 
@@ -428,7 +452,7 @@ int menu(void) {
 
 	int op = 0;
 
-	system("cls");
+	clearScreen();
 	printf(
 		"Menu Principal da ULA\n\
 \n\
